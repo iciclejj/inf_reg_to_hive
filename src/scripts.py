@@ -1,7 +1,6 @@
-import subprocess, sys, os
-
-# An example script path = C:\\Users\\USER\\Desktop\\my_script.ps1
-# Also adding the execution policy in order to avoid Security exception error
+import subprocess
+import sys
+import os
 
 def _run_elevated_powershell_script(script_path_full, args):
     """
