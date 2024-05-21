@@ -1,5 +1,6 @@
 # dirs for user data or generated data
 data/*
+!.gitignore
 input/*
 
 __pycache__
