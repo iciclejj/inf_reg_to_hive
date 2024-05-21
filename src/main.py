@@ -5,7 +5,9 @@ import chardet
 
 import scripts
 
-INF_DIRPATH = "input"
+# TODO: put _get_full_path outside of scripts.py
+INF_DIRPATH = scripts._get_full_path("..\input")
+DATA_DIRPATH = scripts._get_full_path("..\data")
 REGISTRY_KEY_DEFAULT = "HKEY_USERS\\INF_REG_TO_HIVE"
 
 # TODO: make registrypath.join
@@ -41,7 +43,7 @@ def _generate_reg_files():
                     reg_content += f"\n{reg_lines}"
 
                 filename_reg = filename.lower().replace(".inf", ".reg")
-                filepath_reg = os.path.join("data", filename_reg)
+                filepath_reg = os.path.join(DATA_DIRPATH, filename_reg)
 
                 with open(filepath_reg, "w") as f:
                     f.write(reg_content)
