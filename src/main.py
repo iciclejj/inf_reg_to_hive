@@ -25,7 +25,7 @@ def main():
     print("Running all .reg files (populating hive)...")
     scripts.run_all_reg_files()
 
-    print("Done! Go to HKU\\INF_REG_TO_HIVE to see the result!")
+    print(f"Done! Go to {REGISTRY_KEY_DEFAULT} to see the result!")
 
 def _generate_reg_files():
     for dirpath, _, filenames in os.walk(INF_DIRPATH):
