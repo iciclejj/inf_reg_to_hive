@@ -5,8 +5,7 @@ import chardet
 
 import scripts
 
-INF_DIRPATH_ROOT = "input"
-HIVE_PATH_DEFAULT = "data/HIVE.DAT"
+INF_DIRPATH = "input"
 REGISTRY_KEY_DEFAULT = "HKEY_USERS\\INF_REG_TO_HIVE"
 
 # TODO: make registrypath.join
@@ -27,7 +26,7 @@ def main():
     print("Done! Go to HKU\\INF_REG_TO_HIVE to see the result!")
 
 def _generate_reg_files():
-    for dirpath, _, filenames in os.walk(INF_DIRPATH_ROOT):
+    for dirpath, _, filenames in os.walk(INF_DIRPATH):
         for filename in filenames:
             if filename.lower().endswith(".inf"):
                 filepath = os.path.join(dirpath, filename)
