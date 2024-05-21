@@ -20,11 +20,15 @@ def _run_elevated_powershell_script(script_path_full, args):
     subprocess.call(command, shell=True)
 
 def _get_full_path(relative_path):
-    """
-    Expects this python script to be ran from the root project directory, and a windows-style path(?)
-    """
+    # application path needs to be retrieved differently if file is compiled by pyinstaller
+    #     (this implementation might only be valid for pyinstaller --onefile)
+    # TODO: is abspath necessary?
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(os.path.abspath(sys.executable))
+    else:
+        application_path = os.path.dirname(os.path.abspath(__file__))
 
-    return os.path.join(os.path.dirname(__file__), relative_path)
+    return os.path.join(application_path, relative_path)
 
 def run_all_reg_files():
     reg_file_path_full = _get_full_path("..\\data")
