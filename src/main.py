@@ -68,7 +68,7 @@ def extract_inf_registry_lines(inf_file):
                 curr_device = match.group(1)
                 device_reg_sections[curr_device] = []
             # Match AddReg directives within sections
-            elif curr_device and line.startswith("AddReg"):
+            elif curr_device and line.lower().startswith("addreg"):
                 reg_sections = [x.strip() for x in line.split("=")[1].split(",")]
                 device_reg_sections[curr_device].extend(reg_sections)
 
