@@ -2,6 +2,7 @@ import os
 import re
 
 import chardet
+from tqdm import tqdm
 
 import scripts
 
@@ -28,7 +29,7 @@ def main():
     print(f"Done! Go to {REGISTRY_KEY_DEFAULT} to see the result!")
 
 def _generate_reg_files():
-    for dirpath, _, filenames in os.walk(INF_DIRPATH):
+    for dirpath, _, filenames in tqdm(os.walk(INF_DIRPATH)):
         for filename in filenames:
             if filename.lower().endswith(".inf"):
                 filepath = os.path.join(dirpath, filename)
