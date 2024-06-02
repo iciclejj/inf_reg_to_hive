@@ -63,7 +63,7 @@ def extract_inf_addreg_entries(inf_filepath):
 
     with open(inf_filepath, 'r', errors="replace", encoding=encoding) as f:
         curr_device = None
-        for i, line in enumerate(f):
+        for line in f:
             # Match section headers (e.g., [RTL8169.ndi.NT])
             match = inf_section_pattern.match(line)
             if match:
@@ -76,11 +76,10 @@ def extract_inf_addreg_entries(inf_filepath):
 
         # remove "devices" with no registry sections
         device_addreg_sections = {k:v for k, v in device_addreg_sections.items() if v}
-        curr_device = None
         curr_addreg_section = None
         f.seek(0)
 
-        for i, line in enumerate(f):
+        for line in f:
             match = inf_section_pattern.match(line)
             if match:
                 matched_devices = 0
