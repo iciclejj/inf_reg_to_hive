@@ -54,6 +54,8 @@ def extract_inf_registry_lines(inf_file):
     # TODO: make this dict setup cleaner
     device_reg_sections = {}  # Dictionary to store registry sections by device
     device_reg_lines = {} # Dictionary to store registry lines by device
+    reg_section_pattern = re.compile(r'\[([^\]]+)\]')
+
     with open(inf_file, 'rb') as f:
         bytes = f.read()
         encoding = chardet.detect(bytes)['encoding']
@@ -62,7 +64,7 @@ def extract_inf_registry_lines(inf_file):
         curr_device = None
         for i, line in enumerate(f):
             # Match section headers (e.g., [RTL8169.ndi.NT])
-            match = re.match(r'\[([^\]]+)\]', line)
+            match = reg_section_pattern.match(line)
             if match:
                 curr_device = match.group(1)
                 device_reg_sections[curr_device] = []
@@ -78,7 +80,7 @@ def extract_inf_registry_lines(inf_file):
         f.seek(0)
 
         for i, line in enumerate(f):
-            match = re.match(r'\[([^\]]+)\]', line)
+            match = reg_section_pattern.match(line)
             if match:
                 matched_devices = 0
                 # consider creating inverse dict (reg_section: device), and then re-inverting it again in the end?
@@ -100,8 +102,8 @@ def inf_to_reg(inf_lines, custom_key="HKEY_LOCAL_MACHINE\\SOFTWARE\\MyCustomLoca
     reg_lines = []
 
     for line in inf_lines:
-        match = re.match(r'(\w+),([^,]*),([^,]*),([^,]*),(.+)', line)
-        if match:
+        addreg_entry_match = re.match(r'(\w+),([^,]*),([^,]*),([^,]*),(.+)', line)
+        if addreg_entry_match:
             root_key, subkey, value_name, value_type, value_data = match.groups()
             reg_lines.append(f"[{custom_key}\\{root_key}\\{subkey}]")
             reg_lines.append(f'    "{value_name if value_name else ""}"="{value_data}"')  
