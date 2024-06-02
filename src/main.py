@@ -33,78 +33,79 @@ def generate_reg_files():
     for dirpath, _, filenames in tqdm(os.walk(INF_DIRPATH)):
         for filename in filenames:
             if filename.lower().endswith(".inf"):
-                filepath = os.path.join(dirpath, filename)
-                inf_lines = extract_inf_registry_lines(filepath)
+                inf_filename = filename
+                inf_filepath = os.path.join(dirpath, inf_filename)
+                inf_addreg_entries = extract_inf_addreg_entries(inf_filepath)
 
-                if inf_lines is None:
+                if inf_addreg_entries is None:
                     continue
 
-                reg_content = "Windows Registry Editor Version 5.00\n\n"
-                for device, lines in inf_lines.items():
-                    reg_lines = inf_to_reg(lines, f"{REGISTRY_KEY_DEFAULT}\\{filename[:-4]}\\{device}")
+                reg_content = "Windows Registry Editor Version 5.00\n\n" # latest version, for Windows 2000 and later.
+                for device, lines in inf_addreg_entries.items():
+                    reg_lines = inf_to_reg(lines, f"{REGISTRY_KEY_DEFAULT}\\{inf_filename[:-4]}\\{device}")
                     reg_content += f"\n{reg_lines}"
 
-                filename_reg = filename[:-4] + ".reg"
-                filepath_reg = os.path.join(DATA_DIRPATH, filename_reg)
+                reg_filename = inf_filename[:-4] + ".reg"
+                reg_filepath = os.path.join(DATA_DIRPATH, reg_filename)
 
-                with open(filepath_reg, "w") as f:
+                with open(reg_filepath, "w") as f:
                     f.write(reg_content)
 
-def extract_inf_registry_lines(inf_file):
+def extract_inf_addreg_entries(inf_filepath):
     # TODO: make this dict setup cleaner
-    device_reg_sections = {}  # Dictionary to store registry sections by device
-    device_reg_lines = {} # Dictionary to store registry lines by device
-    reg_section_pattern = re.compile(r'\[([^\]]+)\]')
+    device_addreg_sections = {}  # Dictionary to store registry sections by device
+    device_addreg_entries = {} # Dictionary to store registry lines by device
+    inf_section_pattern = re.compile(r'\[([^\]]+)\]')
 
-    with open(inf_file, 'rb') as f:
+    with open(inf_filepath, 'rb') as f:
         bytes = f.read()
         encoding = chardet.detect(bytes)['encoding']
 
-    with open(inf_file, 'r', errors="replace", encoding=encoding) as f:
+    with open(inf_filepath, 'r', errors="replace", encoding=encoding) as f:
         curr_device = None
         for i, line in enumerate(f):
             # Match section headers (e.g., [RTL8169.ndi.NT])
-            match = reg_section_pattern.match(line)
+            match = inf_section_pattern.match(line)
             if match:
                 curr_device = match.group(1)
-                device_reg_sections[curr_device] = []
+                device_addreg_sections[curr_device] = []
             # Match AddReg directives within sections
             elif re.match(r'^addreg\s*=', line, re.IGNORECASE):
-                reg_sections = [x.strip() for x in line.split("=")[1].split(",")]
-                device_reg_sections[curr_device].extend(reg_sections)
+                addreg_sections = [x.strip() for x in line.split("=")[1].split(",")]
+                device_addreg_sections[curr_device].extend(addreg_sections)
 
         # remove "devices" with no registry sections
-        device_reg_sections = {k:v for k, v in device_reg_sections.items() if v}
+        device_addreg_sections = {k:v for k, v in device_addreg_sections.items() if v}
         curr_device = None
-        curr_reg_section = None
+        curr_addreg_section = None
         f.seek(0)
 
         for i, line in enumerate(f):
-            match = reg_section_pattern.match(line)
+            match = inf_section_pattern.match(line)
             if match:
                 matched_devices = 0
                 # consider creating inverse dict (reg_section: device), and then re-inverting it again in the end?
-                for device, sections in device_reg_sections.items():
+                for device, sections in device_addreg_sections.items():
                     if match.group(1) in sections:
-                        curr_reg_section = match.group(1)
-                        device_reg_lines[device] = []
+                        curr_addreg_section = match.group(1)
+                        device_addreg_entries[device] = []
                         matched_devices += 1
                 if matched_devices == 0:
-                    curr_reg_section = None
-            elif curr_reg_section:
-                for device, sections in device_reg_sections.items():
-                    if curr_reg_section in sections:
-                        device_reg_lines[device].append(line)
+                    curr_addreg_section = None
+            elif curr_addreg_section:
+                for device, sections in device_addreg_sections.items():
+                    if curr_addreg_section in sections:
+                        device_addreg_entries[device].append(line)
 
-    return device_reg_lines
+    return device_addreg_entries
 
-def inf_to_reg(inf_lines, custom_key="HKEY_LOCAL_MACHINE\\SOFTWARE\\MyCustomLocation"):
+def inf_to_reg(inf_addreg_entries, custom_key="HKEY_LOCAL_MACHINE\\SOFTWARE\\MyCustomLocation"):
     reg_lines = []
 
-    for line in inf_lines:
-        addreg_entry_match = re.match(r'(\w+),([^,]*),([^,]*),([^,]*),(.+)', line)
-        if addreg_entry_match:
-            root_key, subkey, value_name, value_type, value_data = match.groups()
+    for inf_addreg_line in inf_addreg_entries:
+        inf_addreg_entry_match = re.match(r'(\w+),([^,]*),([^,]*),([^,]*),(.+)', inf_addreg_line)
+        if inf_addreg_entry_match:
+            root_key, subkey, value_name, value_type, value_data = inf_addreg_entry_match.groups()
             reg_lines.append(f"[{custom_key}\\{root_key}\\{subkey}]")
             reg_lines.append(f'    "{value_name if value_name else ""}"="{value_data}"')  
 
