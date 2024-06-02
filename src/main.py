@@ -18,7 +18,7 @@ def main():
     scripts.create_hive()
 
     print("Generating .reg files...")
-    _generate_reg_files()
+    generate_reg_files()
 
     print("Loading empty hive...")
     scripts.load_hive()
@@ -28,7 +28,7 @@ def main():
 
     print(f"Done! Go to {REGISTRY_KEY_DEFAULT} to see the result!")
 
-def _generate_reg_files():
+def generate_reg_files():
     for dirpath, _, filenames in tqdm(os.walk(INF_DIRPATH)):
         for filename in filenames:
             if filename.lower().endswith(".inf"):
