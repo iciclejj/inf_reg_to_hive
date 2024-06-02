@@ -54,8 +54,6 @@ def extract_inf_registry_lines(inf_file):
     # TODO: make this dict setup cleaner
     device_reg_sections = {}  # Dictionary to store registry sections by device
     device_reg_lines = {} # Dictionary to store registry lines by device
-    # ignoring/replacing errors due to encoding errors.
-    #   we will assume crucial sections are all encoded using charmap-compatible encodings
     with open(inf_file, 'rb') as f:
         bytes = f.read()
         encoding = chardet.detect(bytes)['encoding']
@@ -101,7 +99,6 @@ def extract_inf_registry_lines(inf_file):
 def inf_to_reg(inf_lines, custom_key="HKEY_LOCAL_MACHINE\\SOFTWARE\\MyCustomLocation"):
     reg_lines = []
 
-    # TODO: Consider adding root_key to the registry path
     for line in inf_lines:
         match = re.match(r'(\w+),([^,]*),([^,]*),([^,]*),(.+)', line)
         if match:
