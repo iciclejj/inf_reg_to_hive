@@ -55,6 +55,7 @@ def extract_inf_addreg_entries(inf_filepath):
     # TODO: make this dict setup cleaner
     device_addreg_sections = {}  # Dictionary to store registry sections by device
     device_addreg_entries = {} # Dictionary to store registry lines by device
+    addreg_directive_pattern = re.compile(r'^addreg\s*=', re.IGNORECASE)
     inf_section_pattern = re.compile(r'\[([^\]]+)\]')
 
     with open(inf_filepath, 'rb') as f:
@@ -70,7 +71,7 @@ def extract_inf_addreg_entries(inf_filepath):
                 curr_device = match.group(1)
                 device_addreg_sections[curr_device] = []
             # Match AddReg directives within sections
-            elif re.match(r'^addreg\s*=', line, re.IGNORECASE):
+            elif addreg_directive_pattern.match(line):
                 addreg_sections = [x.strip() for x in line.split("=")[1].split(",")]
                 device_addreg_sections[curr_device].extend(addreg_sections)
 
