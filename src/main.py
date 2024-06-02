@@ -40,10 +40,10 @@ def generate_reg_files():
 
                 reg_content = "Windows Registry Editor Version 5.00\n\n"
                 for device, lines in inf_lines.items():
-                    reg_lines = inf_to_reg(lines, f"{REGISTRY_KEY_DEFAULT}\\{filename.replace(".inf", "")}\\{device}")
+                    reg_lines = inf_to_reg(lines, f"{REGISTRY_KEY_DEFAULT}\\{filename[:-4]}\\{device}")
                     reg_content += f"\n{reg_lines}"
 
-                filename_reg = filename.lower().replace(".inf", ".reg")
+                filename_reg = filename[:-4] + ".reg"
                 filepath_reg = os.path.join(DATA_DIRPATH, filename_reg)
 
                 with open(filepath_reg, "w") as f:
