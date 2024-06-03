@@ -63,8 +63,8 @@ def generate_reg_files():
 def extract_inf_addreg_entries(inf_filepath):
     # TODO: make this dict setup cleaner
     inf_sections = {}
-    inf_section_pattern = re.compile(r'\[([^\]]+)\]')
-    addreg_directive_pattern = re.compile(r'^addreg\s*=', re.IGNORECASE)
+    inf_section_pattern = re.compile(r'\[([^\]]+)\]') # Match section headers (e.g., [RTL8169.ndi.NT])
+    addreg_directive_pattern = re.compile(r'^addreg\s*=', re.IGNORECASE) # Match AddReg directives
 
     # Required because not all INF files are consistently encoded.
     with open(inf_filepath, 'rb') as f:
@@ -74,12 +74,10 @@ def extract_inf_addreg_entries(inf_filepath):
     with open(inf_filepath, 'r', errors="replace", encoding=encoding) as f:
         curr_device = None
         for line in f:
-            # Match section headers (e.g., [RTL8169.ndi.NT])
             match = inf_section_pattern.match(line)
             if match:
                 curr_device = match.group(1)
                 inf_sections[curr_device] = []
-            # Match AddReg directives within sections
             elif addreg_directive_pattern.match(line):
                 addreg_sections = [x.strip() for x in line.split("=")[1].split(",")]
                 inf_sections[curr_device].extend(addreg_sections)
