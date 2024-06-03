@@ -66,6 +66,7 @@ def extract_inf_addreg_entries(inf_filepath):
     inf_section_pattern = re.compile(r'\[([^\]]+)\]')
     addreg_directive_pattern = re.compile(r'^addreg\s*=', re.IGNORECASE)
 
+    # Required because not all INF files are consistently encoded.
     with open(inf_filepath, 'rb') as f:
         bytes = f.read()
         encoding = chardet.detect(bytes)['encoding']
