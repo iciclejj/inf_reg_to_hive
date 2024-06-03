@@ -72,15 +72,15 @@ def extract_inf_addreg_entries(inf_filepath):
         encoding = chardet.detect(bytes)['encoding']
 
     with open(inf_filepath, 'r', errors="replace", encoding=encoding) as f:
-        curr_device = None
+        curr_section = None
         for line in f:
             match = inf_section_pattern.match(line)
             if match:
-                curr_device = match.group(1)
-                inf_sections[curr_device] = []
+                curr_section = match.group(1)
+                inf_sections[curr_section] = []
             elif addreg_directive_pattern.match(line):
                 addreg_sections = [x.strip() for x in line.split("=")[1].split(",")]
-                inf_sections[curr_device].extend(addreg_sections)
+                inf_sections[curr_section].extend(addreg_sections)
 
         # Dictionaries to store addreg sections/entries by device.
         #   Assumes that:
