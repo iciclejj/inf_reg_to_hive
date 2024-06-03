@@ -5,6 +5,7 @@ import chardet
 from tqdm import tqdm
 
 import scripts
+import user_input
 
 # TODO: put _get_full_path outside of scripts.py
 INF_DIRPATH = scripts._get_full_path("..\input")
@@ -14,11 +15,19 @@ REGISTRY_KEY_DEFAULT = "HKEY_USERS\\INF_REG_TO_HIVE"
 # TODO: make registrypath.join
 
 def main():
-    print("Creating empty hive...")
-    scripts.create_hive()
-
     print("Generating .reg files...")
     generate_reg_files()
+
+    edit_registry = user_input.prompt_yes_no(
+        "Create, load and populate registry hive? This will load a self-contained hive with the contents of the .reg files into your registry.",
+        default=False
+    )
+    if not edit_registry:
+        print(f"Done! You can find the .reg files in {DATA_DIRPATH}")
+        return
+
+    print("Creating empty hive...")
+    scripts.create_hive()
 
     print("Loading empty hive...")
     scripts.load_hive()
