@@ -8,8 +8,8 @@ import scripts
 import user_input
 
 # TODO: put _get_full_path outside of scripts.py
-INF_DIRPATH = scripts._get_full_path("..\input")
-DATA_DIRPATH = scripts._get_full_path("..\data")
+INF_DIRPATH = scripts._get_full_path("..\\input")
+DATA_DIRPATH = scripts._get_full_path("..\\data")
 REGISTRY_KEY_DEFAULT = "HKEY_USERS\\INF_REG_TO_HIVE"
 
 # TODO: make registrypath.join
