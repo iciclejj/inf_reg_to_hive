@@ -99,7 +99,8 @@ def extract_inf_addreg_entries(inf_filepath):
                 for device, sections in device_addreg_sections.items():
                     if match.group(1) in sections:
                         curr_addreg_section = match.group(1)
-                        device_addreg_entries[device] = []
+                        if device not in device_addreg_entries:
+                            device_addreg_entries[device] = []
                         matched_devices += 1
                 if matched_devices == 0:
                     curr_addreg_section = None
