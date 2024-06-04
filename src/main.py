@@ -68,7 +68,7 @@ def extract_inf_addreg_entries(inf_filepath):
 
     # Required because not all INF files are consistently encoded.
     with open(inf_filepath, 'rb') as f:
-        bytes = f.read()
+        bytes = f.read(4096) # reading entire file takes too long. byte number is arbitrary atm.
         encoding = chardet.detect(bytes)['encoding']
 
     with open(inf_filepath, 'r', errors="replace", encoding=encoding) as f:
