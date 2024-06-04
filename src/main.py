@@ -94,11 +94,12 @@ def extract_inf_addreg_entries(inf_filepath):
         for line in f:
             match = inf_section_pattern.match(line)
             if match:
+                curr_section = match.group(1)
                 matched_devices = 0
                 # consider creating inverse dict (reg_section: device), and then re-inverting it again in the end?
                 for device, sections in device_addreg_sections.items():
-                    if match.group(1) in sections:
-                        curr_addreg_section = match.group(1)
+                    if curr_section in sections:
+                        curr_addreg_section = curr_section
                         if device not in device_addreg_entries:
                             device_addreg_entries[device] = []
                         matched_devices += 1
