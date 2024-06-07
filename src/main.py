@@ -38,27 +38,30 @@ def main():
     print(f"Done! Go to {REGISTRY_KEY_DEFAULT} to see the result!")
 
 def generate_reg_files():
-    # TODO: better progress/iteration bar (currently tracks all files, not just .inf)
-    for dirpath, _, filenames in tqdm(os.walk(INF_DIRPATH)):
+    inf_paths = []
+
+    # Walk through the directory once to collect all .inf file paths
+    for dirpath, _, filenames in os.walk(INF_DIRPATH):
         for filename in filenames:
             if filename.lower().endswith(".inf"):
-                inf_filename = filename
-                inf_filepath = os.path.join(dirpath, inf_filename)
-                inf_addreg_entries = extract_inf_addreg_entries(inf_filepath)
+                inf_paths.append(os.path.join(dirpath, filename))
 
-                if inf_addreg_entries is None:
-                    continue
+    for inf_filepath in tqdm(inf_paths, total=len(inf_paths)):
+        inf_addreg_entries = extract_inf_addreg_entries(inf_filepath)
 
-                reg_content = "Windows Registry Editor Version 5.00\n\n" # latest version, for Windows 2000 and later.
-                for device, lines in inf_addreg_entries.items():
-                    reg_lines = inf_to_reg(lines, f"{REGISTRY_KEY_DEFAULT}\\{inf_filename[:-4]}\\{device}")
-                    reg_content += f"\n{reg_lines}"
+        if inf_addreg_entries is None:
+            continue
 
-                reg_filename = inf_filename[:-4] + ".reg"
-                reg_filepath = os.path.join(DATA_DIRPATH, reg_filename)
+        reg_content = "Windows Registry Editor Version 5.00\n\n" # latest version, for Windows 2000 and later.
+        for device, lines in inf_addreg_entries.items():
+            reg_lines = inf_to_reg(lines, f"{REGISTRY_KEY_DEFAULT}\\{os.path.basename(inf_filepath)[:-4]}\\{device}")
+            reg_content += f"\n{reg_lines}"
 
-                with open(reg_filepath, "w") as f:
-                    f.write(reg_content)
+        reg_filename = os.path.basename(inf_filepath)[:-4] + ".reg"
+        reg_filepath = os.path.join(DATA_DIRPATH, reg_filename)
+
+        with open(reg_filepath, "w") as f:
+            f.write(reg_content)
 
 def extract_inf_addreg_entries(inf_filepath):
     # Required because not all INF files are consistently encoded.
