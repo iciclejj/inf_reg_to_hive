@@ -61,56 +61,58 @@ def generate_reg_files():
                     f.write(reg_content)
 
 def extract_inf_addreg_entries(inf_filepath):
-    # TODO: make this dict setup cleaner
-    inf_sections = {}
-    inf_section_pattern = re.compile(r'\[([^\]]+)\]') # Match section headers (e.g., [RTL8169.ndi.NT])
-    addreg_directive_pattern = re.compile(r'^addreg\s*=', re.IGNORECASE) # Match AddReg directives
-
     # Required because not all INF files are consistently encoded.
     with open(inf_filepath, 'rb') as f:
         bytes = f.read(4096) # reading entire file takes too long. byte number is arbitrary atm.
         encoding = chardet.detect(bytes)['encoding']
 
+    inf_section_lines = {}
+    device_addreg_sections = {}
+
+    inf_section_pattern = re.compile(r'\[([^\]]+)\]')  # Match section headers (e.g., [RTL8169.ndi.NT])
+    addreg_directive_pattern = re.compile(r'^addreg\s*=', re.IGNORECASE)  # Match AddReg directives
+
     with open(inf_filepath, 'r', errors="replace", encoding=encoding) as f:
         curr_section = None
-        for line in f:
+        for i, line in enumerate(f):
             match = inf_section_pattern.match(line)
             if match:
-                curr_section = match.group(1)
-                inf_sections[curr_section] = []
+                curr_section = match.group(1).lower()  # case insensitive
+                inf_section_lines[i] = curr_section
             elif addreg_directive_pattern.match(line):
-                addreg_sections = [x.strip() for x in line.split("=")[1].split(",")]
-                inf_sections[curr_section].extend(addreg_sections)
+                if curr_section not in device_addreg_sections:
+                    device_addreg_sections[curr_section] = []
+                addreg_sections = [x.strip().lower() for x in line.split("=")[1].split(",")]  # case insensitive
+                device_addreg_sections[curr_section].extend(addreg_sections)
 
         # Dictionaries to store addreg sections/entries by device.
         #   Assumes that:
-        #       - each section with an addreg directive is a device
-        #       - each device has an addreg section with at least one entry
-        device_addreg_sections = {k:v for k, v in inf_sections.items() if v}
-        device_addreg_entries = {}
-        curr_addreg_section = None
+        #     - each section with an addreg directive is a device
+        #     - each device has an addreg section with at least one entry
         f.seek(0)
+        device_to_addreg_entries = {}
+        addreg_section_to_devices = {}
+        is_addreg_section = False
 
-        for line in f:
-            match = inf_section_pattern.match(line)
-            if match:
-                curr_section = match.group(1)
-                matched_devices = 0
-                # consider creating inverse dict (reg_section: device), and then re-inverting it again in the end?
-                for device, sections in device_addreg_sections.items():
-                    if curr_section in sections:
-                        curr_addreg_section = curr_section
-                        if device not in device_addreg_entries:
-                            device_addreg_entries[device] = []
-                        matched_devices += 1
-                if matched_devices == 0:
-                    curr_addreg_section = None
-            elif curr_addreg_section:
-                for device, sections in device_addreg_sections.items():
-                    if curr_addreg_section in sections:
-                        device_addreg_entries[device].append(line)
+        # Builds a mapping of addreg *sections* to devices (inverse of device_addreg_sections)
+        for device, sections in device_addreg_sections.items():
+            for section in sections:
+                if section not in addreg_section_to_devices:
+                    addreg_section_to_devices[section] = []
+                addreg_section_to_devices[section].append(device)
 
-    return device_addreg_entries
+        # Builds a mapping of devices to addreg *entries* (inverse of addreg_section_to_devices)
+        for i, line in enumerate(f):
+            if i in inf_section_lines:
+                curr_section = inf_section_lines[i]
+                is_addreg_section = curr_section in addreg_section_to_devices
+            elif is_addreg_section:
+                for device in addreg_section_to_devices[curr_section]:
+                    if device not in device_to_addreg_entries:
+                        device_to_addreg_entries[device] = []
+                    device_to_addreg_entries[device].append(line)
+
+    return device_to_addreg_entries
 
 def inf_to_reg(inf_addreg_entries, custom_key="HKEY_LOCAL_MACHINE\\SOFTWARE\\MyCustomLocation"):
     reg_lines = []
