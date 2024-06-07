@@ -46,7 +46,7 @@ def generate_reg_files():
             if filename.lower().endswith(".inf"):
                 inf_paths.append(os.path.join(dirpath, filename))
 
-    for inf_filepath in tqdm(inf_paths, total=len(inf_paths)):
+    for inf_filepath in tqdm(inf_paths):
         inf_addreg_entries = extract_inf_addreg_entries(inf_filepath)
 
         if inf_addreg_entries is None:
